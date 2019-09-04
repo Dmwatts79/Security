@@ -1,0 +1,42 @@
+# This is the script to build a CA using SLES 15. 
+
+# Create your directory structure as needed 
+mkdir Cert_Auth
+pushd Cert_Auth
+    mkdir certs crl newcerts requests private
+    chmod 700 private/
+    touch index.txt
+    echo 01 > serial
+popd
+
+# Adjust default contents of /etc/ssl/openssl to your liking
+sed -i "s/demoCA/Cert_Auth/g" /etc/ssl/openssl.cnf
+sed -i "s@^certificate.*cacert.pem@certificate = \$dir/$SCE1500201_CA_NAME.pem@g" /etc/ssl/openssl.cnf
+sed -i "s/cakey.pem/Cert_Auth-key.pem/g" /etc/ssl/openssl.cnf
+
+# Create CA
+openssl req \
+    -new \
+    -x509 \
+    -keyout Cert_Auth/private/Cert_Auth-key.pem \
+    -out Cert_Auth/Cert_Auth.pem \
+    -days 3652 \
+    -newkey rsa:2048 \
+    -passout pass:test \
+    -subj "/C=US/ST=Texas/L=SanAntonio/O=MWatts/OU=Testing/CN=MWatts.example.com" 
+openssl req -new -keyout Cert_Auth/private/Cert_Auth.pem -out Cert_Auth/requests/Cert_Auth.pem -newkey rsa:2048 -passout pass:test \
+    -subj "/C=US/ST=Texas/L=SanAntonio/O=Mwatts/OU=Testing/CN=Mwatts.example.com" 
+
+
+# Create Policy
+    openssl ca -batch -policy policy_anything -days 365 -out Cert_auth/certs/Cert_Auth-crt.pem -passin pass:Cert_Auth -infiles Cert_Auth/requests/Cert_Auth.pem 
+
+# Create the key parameters file for --batch unattended setup and run as Mike user 
+su - Mike -c ' cat >keydetails <<EOF
+Key-Type: DSA
+Name-Real: SUSE SCE Signing Key
+Name-Email:Mwatts@example.com
+Passphrase:test'
+
+Create Key as user mike
+su - mike -c 'gpg --gen-key --batch /home/tux/keydetails'
