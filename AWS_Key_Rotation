@@ -1,2 +1,7 @@
 # This will implement a key rotation with AWS KMS 
 
+# List current access keys 
+aws iam list-access-keys 
+
+# Verify when the key was last used 
+# aws iam get-access-key-last-used --access-key-id <value>  
