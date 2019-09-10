@@ -1,0 +1,5 @@
+#! /bin/bash
+
+Author: Mike Watts - dmgwatts@gmail.com
+
+aws s3 sync documents/patient_photos s3://patient_photos --storage-class S3_STANDARD 
